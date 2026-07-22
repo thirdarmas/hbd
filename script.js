@@ -1,6 +1,6 @@
 /**
  * Simple & Elegant Birthday Experience for Jermeena Umi
- * Vanilla ES6 JavaScript
+ * Vanilla ES6 JavaScript (iOS Safari Friendly)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let audioCtx = null;
   let analyser = null;
   let isBlownOut = false;
+  let isAudioUnlocked = false;
 
   const defaultLetter = `Happy 20th Birthday, bes!
 
@@ -27,6 +28,31 @@ May God continue to bless you abundantly, grant the desires of your heart accord
 Enjoy your special day! You deserve all the love, laughter, and happiness today.
 
 Happy 20th Birthday once again, Umi. God bless you always!`;
+
+  // --- iOS SAFARI AUDIO UNLOCKER ---
+  // Ino-unlock nito ang media playback ng Safari sa pamamagitan ng pag-play & pause
+  // habang may totoong tap/click gesture ang user.
+  const unlockAudio = () => {
+    if (isAudioUnlocked) return;
+
+    const audioIds = ["sfx-hbd", "sfx-sparkle", "sfx-click", "sfx-blow"];
+    audioIds.forEach((id) => {
+      const audioEl = document.getElementById(id);
+      if (audioEl) {
+        audioEl
+          .play()
+          .then(() => {
+            audioEl.pause();
+            audioEl.currentTime = 0;
+          })
+          .catch(() => {
+            // Unlocking will silently catch if not fully loaded yet
+          });
+      }
+    });
+
+    isAudioUnlocked = true;
+  };
 
   // --- AUDIO SYNTHESIS FALLBACKS ---
   const playSynthesizedSFX = (type) => {
@@ -79,7 +105,17 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
   const playAudio = (id, synthType) => {
     const audioEl = document.getElementById(id);
     if (audioEl) {
-      audioEl.play().catch(() => playSynthesizedSFX(synthType));
+      audioEl.currentTime = 0;
+      const playPromise = audioEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn(
+            `HTML Audio play failed for ${id}, using synth fallback:`,
+            err,
+          );
+          playSynthesizedSFX(synthType);
+        });
+      }
     } else {
       playSynthesizedSFX(synthType);
     }
@@ -160,6 +196,7 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
   introSequence();
 
   document.getElementById("btn-start").addEventListener("click", () => {
+    unlockAudio(); // Unlocks iOS Safari Audio
     playAudio("sfx-click", "click");
     const intro = document.getElementById("intro-screen");
     intro.style.opacity = "0";
@@ -175,6 +212,8 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
   const instructionText = document.getElementById("instruction-text");
 
   cake.addEventListener("click", (e) => {
+    unlockAudio(); // Paniguradong unlocked habang nag-ta-tap ng candles!
+
     if (candleCount >= MAX_CANDLES || isBlownOut) return;
 
     candleCount++;
@@ -248,6 +287,7 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
   };
 
   document.getElementById("btn-manual-blow").addEventListener("click", () => {
+    unlockAudio();
     extinguishCandles();
   });
 
@@ -281,6 +321,7 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
       micStream.getTracks().forEach((track) => track.stop());
     }
 
+    // Siguraduhing ma-play ang HBD audio pagkahipag
     setTimeout(() => {
       playAudio("sfx-hbd", "sparkle");
       document.getElementById("btn-next-letter").classList.remove("hidden");
