@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Happy 20th Birthday, Umi</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Pacifico&family=Playfair+Display:ital,wght@1,600&family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Ambient Global Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Decorative Corner Accents -->
+    <div class="corner-accent top-left"></div>
+    <div class="corner-accent top-right"></div>
+    <div class="corner-accent bottom-left"></div>
+    <div class="corner-accent bottom-right"></div>
+
+    <!-- Decorative Top Ribbon with Date -->
+    <!-- <div class="top-ribbon">
+      <span>July 23 &bull; 20th Birthday</span>
+    </div> -->
+
+    <!-- Intro Screen -->
+    <section id="intro-screen" class="active">
+      <div class="intro-content">
+        <h2 id="intro-text-1" class="intro-line">Someone very special...</h2>
+        <h2 id="intro-text-2" class="intro-line">...is turning 20 today.</h2>
+        <h2 id="intro-text-3" class="intro-line">This is for...</h2>
+        <h1 id="intro-text-4" class="intro-name">Jermeena Umi</h1>
+        <button id="btn-start" class="glow-button hidden">Tap to Begin</button>
+      </div>
+    </section>
+
+    <!-- Main Scene Container -->
+    <main id="main-scene" class="hidden">
+      <header class="scene-header">
+        <h1 class="glow-title">Happy 20th Birthday</h1>
+        <h2 class="sub-title">Jermeena Umi</h2>
+        <!-- <p class="bday-date">July 23</p> -->
+      </header>
+
+      <!-- Floating Minimalist Balloons -->
+      <div class="balloon-container">
+        <div class="balloon b1"></div>
+        <div class="balloon b2"></div>
+        <div class="balloon b3"></div>
+        <div class="balloon b4"></div>
+      </div>
+
+      <!-- Central Interactive Cake (3-Tiered Luxury Conti's Chocolate Mousse) -->
+      <div class="cake-wrapper">
+        <div id="cake" class="cake">
+          <!-- Tier 3: Top Layer -->
+          <div class="tier tier-3 choco-mousse-top">
+            <!-- Whipped Cream Rosettes Rim -->
+            <div class="rosettes-container">
+              <span class="rosette"></span>
+              <span class="rosette"></span>
+              <span class="rosette"></span>
+              <span class="rosette"></span>
+              <span class="rosette"></span>
+            </div>
+
+            <!-- Chocolate Curls & Shards -->
+            <div class="top-decorations">
+              <span class="choco-curl curl-1"></span>
+              <span class="choco-curl curl-2"></span>
+              <span class="choco-curl curl-3"></span>
+            </div>
+
+            <!-- Gold Dust Accent Flakes -->
+            <div class="gold-dust">
+              <span class="gold-flake"></span>
+              <span class="gold-flake"></span>
+              <span class="gold-flake"></span>
+              <span class="gold-flake"></span>
+            </div>
+
+            <!-- Candle Container -->
+            <div class="candle-container" id="candle-container"></div>
+          </div>
+
+          <!-- Tier 2: Middle Mousse Layer -->
+          <div class="tier tier-2 choco-mousse-mid">
+            <div class="ganache-drips"></div>
+            <div class="cream-stripe"></div>
+          </div>
+
+          <!-- Tier 1: Bottom Fudge Base Layer -->
+          <div class="tier tier-1 choco-fudge-base">
+            <div class="gold-ribbon"></div>
+            <div class="base-piping"></div>
+          </div>
+
+          <!-- Elegant Plate -->
+          <div class="cake-plate"></div>
+        </div>
+      </div>
+
+      <!-- Interactive Status Banner & Controls -->
+      <div class="interaction-card glassmorphism">
+        <p id="instruction-text" class="instruction">
+          Click the cake to add candles (0 / 20)
+        </p>
+
+        <!-- Mic Status Indicator -->
+        <div id="mic-indicator" class="mic-container hidden">
+          <div class="mic-status-label">Mic Active</div>
+          <div class="mic-meter"><div id="mic-bar" class="mic-bar"></div></div>
+        </div>
+
+        <!-- Fallback button if mic denied or unsupported -->
+        <button id="btn-manual-blow" class="glow-button hidden">
+          Blow Out Candles
+        </button>
+        <button id="btn-next-letter" class="glow-button hidden">
+          Read Your Letter
+        </button>
+      </div>
+    </main>
+
+    <!-- Letter Modal Scene -->
+    <section id="letter-scene" class="hidden">
+      <div class="paper-envelope glassmorphism">
+        <div class="letter-header">
+          <h2>Dearest Umi,</h2>
+        </div>
+        <div class="letter-body">
+          <p id="typewriter-text"></p>
+        </div>
+        <div class="letter-footer">
+          <button id="btn-finish" class="glow-button hidden">
+            Cherish this memory.
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grand Finale Overlay -->
+    <section id="finale-scene" class="hidden">
+      <div class="moon"></div>
+      <div class="finale-content glassmorphism">
+        <p class="final-quote">
+          "Thou wilt keep him in perfect peace, <br />
+          whose mind is stayed on thee: because he trusteth in thee." - Isaiah
+          26:3 (KJV)
+        </p>
+        <h2 class="final-wish">Happy Birthday,<br />Jermeena Umi.</h2>
+        <p class="final-signoff">From, kikooo</p>
+      </div>
+    </section>
+
+    <!-- Audio Elements -->
+    <audio id="sfx-hbd" src="hbd.mp3" preload="auto"></audio>
+    <audio id="sfx-sparkle" src="sparkle.mp3" preload="auto"></audio>
+    <audio id="sfx-blow" src="blow.mp3" preload="auto"></audio>
+    <audio id="sfx-click" src="click.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+  </body>
+</html>
