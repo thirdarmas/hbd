@@ -1,12 +1,16 @@
 /**
  * Simple & Elegant Birthday Experience for Jermeena Umi
- * Vanilla ES6 JavaScript (Automatic Candle Blowout)
+ * Vanilla ES6 JavaScript (iOS Safari Friendly)
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   let candleCount = 0;
   const MAX_CANDLES = 20; // Set to 20 for her 20th birthday
+  let micStream = null;
+  let audioCtx = null;
+  let analyser = null;
   let isBlownOut = false;
+  let isAudioUnlocked = false;
 
   const defaultLetter = `Happy 20th Birthday, bes!
 
@@ -25,11 +29,30 @@ Enjoy your special day! You deserve all the love, laughter, and happiness today.
 
 Happy 20th Birthday once again, Umi. God bless you always!`;
 
-  // Pre-load audio elements
-  const hbdAudio = document.getElementById("sfx-hbd");
-  if (hbdAudio) {
-    hbdAudio.load();
-  }
+  // --- iOS SAFARI AUDIO UNLOCKER ---
+  // Ino-unlock nito ang media playback ng Safari sa pamamagitan ng pag-play & pause
+  // habang may totoong tap/click gesture ang user.
+  const unlockAudio = () => {
+    if (isAudioUnlocked) return;
+
+    const audioIds = ["sfx-hbd", "sfx-sparkle", "sfx-click", "sfx-blow"];
+    audioIds.forEach((id) => {
+      const audioEl = document.getElementById(id);
+      if (audioEl) {
+        audioEl
+          .play()
+          .then(() => {
+            audioEl.pause();
+            audioEl.currentTime = 0;
+          })
+          .catch(() => {
+            // Unlocking will silently catch if not fully loaded yet
+          });
+      }
+    });
+
+    isAudioUnlocked = true;
+  };
 
   // --- AUDIO SYNTHESIS FALLBACKS ---
   const playSynthesizedSFX = (type) => {
@@ -173,6 +196,7 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
   introSequence();
 
   document.getElementById("btn-start").addEventListener("click", () => {
+    unlockAudio(); // Unlocks iOS Safari Audio
     playAudio("sfx-click", "click");
     const intro = document.getElementById("intro-screen");
     intro.style.opacity = "0";
@@ -182,12 +206,14 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
     }, 1500);
   });
 
-  // --- INTERACTION 1: CANDLE ADDITION & AUTOMATIC BLOWOUT ---
+  // --- INTERACTION 1: CANDLE ADDITION ---
   const cake = document.getElementById("cake");
   const candleContainer = document.getElementById("candle-container");
   const instructionText = document.getElementById("instruction-text");
 
   cake.addEventListener("click", (e) => {
+    unlockAudio(); // Paniguradong unlocked habang nag-ta-tap ng candles!
+
     if (candleCount >= MAX_CANDLES || isBlownOut) return;
 
     candleCount++;
@@ -203,16 +229,66 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
 
     instructionText.textContent = `Click the cake to add candles (${candleCount} / ${MAX_CANDLES})`;
 
-    // Pag umabot na sa 20 candles, kusa/automatic nang mamamatay ang kandila!
     if (candleCount === MAX_CANDLES) {
-      instructionText.textContent = "Make a wish...";
+      instructionText.textContent = "Make a wish";
       playAudio("sfx-sparkle", "sparkle");
-
-      // Automatic blowout pagkatapos ng 1 segundo
-      setTimeout(() => {
-        extinguishCandles();
-      }, 1000);
+      setTimeout(initMicDetection, 1500);
     }
+  });
+
+  // --- INTERACTION 2: MICROPHONE & BLOWING ---
+  const initMicDetection = () => {
+    instructionText.textContent =
+      "Blow towards your microphone to make your wish";
+    document.getElementById("mic-indicator").classList.remove("hidden");
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then((stream) => {
+          micStream = stream;
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          analyser = audioCtx.createAnalyser();
+          const source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+          analyser.fftSize = 256;
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+          const checkBlow = () => {
+            if (isBlownOut) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            let average = sum / dataArray.length;
+
+            document.getElementById("mic-bar").style.width =
+              Math.min(100, average * 2) + "%";
+
+            if (average > 45) {
+              extinguishCandles();
+            } else {
+              requestAnimationFrame(checkBlow);
+            }
+          };
+          checkBlow();
+        })
+        .catch((err) => {
+          showManualBlowFallback();
+        });
+    } else {
+      showManualBlowFallback();
+    }
+  };
+
+  const showManualBlowFallback = () => {
+    instructionText.textContent = "Click the button to blow out the candles";
+    document.getElementById("mic-indicator").classList.add("hidden");
+    document.getElementById("btn-manual-blow").classList.remove("hidden");
+  };
+
+  document.getElementById("btn-manual-blow").addEventListener("click", () => {
+    unlockAudio();
+    extinguishCandles();
   });
 
   const extinguishCandles = () => {
@@ -220,6 +296,8 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
     isBlownOut = true;
 
     playAudio("sfx-blow", "blow");
+    document.getElementById("mic-indicator").classList.add("hidden");
+    document.getElementById("btn-manual-blow").classList.add("hidden");
 
     document.querySelectorAll(".flame").forEach((f) => {
       f.classList.add("extinguished");
@@ -228,7 +306,7 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
       f.parentElement.appendChild(smoke);
     });
 
-    instructionText.textContent = "Your wish has been made ✨";
+    instructionText.textContent = "Your wish has been made";
 
     if (window.confetti) {
       confetti({
@@ -239,14 +317,18 @@ Happy 20th Birthday once again, Umi. God bless you always!`;
       });
     }
 
-    // Pagka-extinguish, automatic nang mag-pe-play ang HBD sound!
+    if (micStream) {
+      micStream.getTracks().forEach((track) => track.stop());
+    }
+
+    // Siguraduhing ma-play ang HBD audio pagkahipag
     setTimeout(() => {
       playAudio("sfx-hbd", "sparkle");
       document.getElementById("btn-next-letter").classList.remove("hidden");
     }, 1200);
   };
 
-  // --- INTERACTION 2: LETTER WITH TYPEWRITER EFFECT ---
+  // --- INTERACTION 3: LETTER WITH TYPEWRITER EFFECT ---
   document
     .getElementById("btn-next-letter")
     .addEventListener("click", async () => {
